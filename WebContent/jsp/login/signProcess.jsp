@@ -90,10 +90,8 @@ private void signUp(String userId, String userNm, String userPw, String email)th
 		System.out.println(userId + ", "  + userNm + ", "  + userPw + ", "  + email );
 		
 		pstmt.executeUpdate();
-		conn.commit();
 	}catch(Exception e){
 		e.printStackTrace();
-		conn.rollback();
 	}finally{
 		if(pstmt != null) try{pstmt.close();}catch(Exception ex){}
 		if(conn  != null) try{conn.close(); }catch(Exception ex){}
