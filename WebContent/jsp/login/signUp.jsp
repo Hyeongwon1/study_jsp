@@ -10,7 +10,7 @@
 	table {width:100%; border: 1px solid #555; border-spacing: 0px;}
 	table tr th, td {border: 1px solid #555; height: 40px; text-align: left; padding-left: 5px; padding-right: 15px;}
 	input {width:100%; height: 25px; padding-left:5px;}
-	button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold;}
+	button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold;; cursor: pointer;}
 </style>
 <script type="text/javascript">
 	function fn_signup(){
