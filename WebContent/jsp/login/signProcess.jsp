@@ -5,30 +5,17 @@
 <%@ page import="java.sql.PreparedStatement"%>
 <%@ page import="java.sql.ResultSet"%>
 <%@ page import="java.sql.SQLException"%>
+<%@ page import="co.kr.ucs.dao.DBManager"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <%!
-private Connection getConnection()throws SQLException, ClassNotFoundException{
-	Connection conn = null;
-	String url = "jdbc:oracle:thin:@220.76.203.39:1521:UCS";
-	String id = "UCS_STUDY";
-	String pw = "qazxsw";
-	
-	Class.forName("oracle.jdbc.driver.OracleDriver");
-	conn=DriverManager.getConnection(url,id,pw);
-	
-	System.out.println("DB 연결성공");
-	
-	return conn;
-}
-
 private int getExistsUser(String userId)throws SQLException, ClassNotFoundException{
 	return getExistsUser(userId, null);
 }
 
 private int getExistsUser(String userId, String userPw)throws SQLException, ClassNotFoundException{
 	int count = 0;
-	
-	Connection conn = this.getConnection();
+	DBManager dbManager = new DBManager();
+	Connection conn = dbManager.getConnection();
 	PreparedStatement pstmt = null;
 	ResultSet rs = null;
 	
@@ -60,16 +47,15 @@ private int getExistsUser(String userId, String userPw)throws SQLException, Clas
 	}catch(Exception e){
 		e.printStackTrace();
 	}finally{
-		if(rs    != null) try{rs.close();   }catch(Exception ex){}
-		if(pstmt != null) try{pstmt.close();}catch(Exception ex){}
-		if(conn  != null) try{conn.close(); }catch(Exception ex){}
+		dbManager.close(rs, pstmt, conn);
 	}
 	
 	return count;
 	
 }
-private void signUp(String userId, String userNm, String userPw, String email)throws SQLException, ClassNotFoundException{
-	Connection conn = this.getConnection();
+private boolean signUp(String userId, String userNm, String userPw, String email)throws SQLException, ClassNotFoundException{
+	DBManager dbManager = new DBManager();
+	Connection conn = dbManager.getConnection();
 	PreparedStatement pstmt = null;
 	try{
 		StringBuffer sql = new StringBuffer();
@@ -92,10 +78,12 @@ private void signUp(String userId, String userNm, String userPw, String email)th
 		pstmt.executeUpdate();
 	}catch(Exception e){
 		e.printStackTrace();
+		return false;
 	}finally{
-		if(pstmt != null) try{pstmt.close();}catch(Exception ex){}
-		if(conn  != null) try{conn.close(); }catch(Exception ex){}
+		dbManager.close(null, pstmt, conn);
 	}
+	
+	return true;
 }
 %>
 <%
@@ -118,9 +106,11 @@ private void signUp(String userId, String userNm, String userPw, String email)th
 			String userNm = request.getParameter("userNm");
 			String email  = request.getParameter("email");
 			
-			signUp(userId, userNm, userPw, email);
-			
-			result = "successSignup";
+			if(signUp(userId, userNm, userPw, email)){
+				result = "successSignup";	
+			}else{
+				result = "failSignup";
+			}
 		}
 		
 	// 로그인
@@ -130,6 +120,9 @@ private void signUp(String userId, String userNm, String userPw, String email)th
 			session.setAttribute("SESSION_USER_ID", userId);
 			
 			result = "successSignin";
+			
+		}else{
+			result = "failSignin";
 			
 		}
 	}
@@ -142,9 +135,17 @@ private void signUp(String userId, String userNm, String userPw, String email)th
 <% } else if(result.equals("successSignup")){ %>
 	alert('회원가입을 완료하였습니다.');
 	location.href = 'signIn.jsp';
+	
+<% } else if(result.equals("failSignup")){ %>
+	alert('회원가입 실패.');
+	location.href = 'signIn.jsp';
 
 <% } else if(result.equals("successSignin")){ %>
 	location.href = '/jsp/board/boardList.jsp';
+
+<% } else if(result.equals("failSignin")){ %>
+	alert('로그인 실패.');
+	location.href = 'signIn.jsp';
 
 <% } %>
 </script>
