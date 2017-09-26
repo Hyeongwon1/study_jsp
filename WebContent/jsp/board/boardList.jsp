@@ -1,145 +1,24 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="java.sql.Connection" %>
-<%@ page import="java.sql.DriverManager" %>
-<%@ page import="java.sql.PreparedStatement"%>
-<%@ page import="java.sql.ResultSet"%>
-<%@ page import="java.sql.SQLException"%>    
 <%@ page import="java.util.List"%>
-<%@ page import="java.util.ArrayList"%>
 <%@ page import="java.util.Map"%>
-<%@ page import="java.util.HashMap"%>
+<%@ page import="co.kr.ucs.service.BoardService"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
-<%!
-int rowCountPerPage = 10;
-int pageBlockSize = 10;
-int currPage = 1;
-int totalCount = 0;
-
-private Connection getConnection()throws SQLException, ClassNotFoundException{
-	Connection conn = null;
-	String url = "jdbc:oracle:thin:@220.76.203.39:1521:UCS";
-	String id = "UCS_STUDY";
-	String pw = "qazxsw";
-	
-	Class.forName("oracle.jdbc.driver.OracleDriver");
-	conn=DriverManager.getConnection(url,id,pw);
-	
-	System.out.println("DB 연결성공");
-	
-	return conn;
-}
-
-private List<Map<String, String>> getBoardList(String searchType, String search)throws SQLException, ClassNotFoundException{
-	Connection conn = getConnection();
-	PreparedStatement pstmt = null;
-	ResultSet rs = null;
-	
-	List<Map<String, String>> boardList = new ArrayList<>(); 
-	try{
-		
-		StringBuffer sql = new StringBuffer();
-		sql.append("SELECT * FROM (\n");
-		sql.append("SELECT A.*, ROWNUM RN FROM (\n");
-		
-		sql.append("SELECT COUNT(*) OVER () AS TOT_CNT,\n");
-		sql.append("	   SEQ,\n");
-		sql.append("	   TITLE,\n");
-		sql.append("	   CONTENTS,\n");
-		sql.append("	   REG_ID,\n");
-		sql.append("	   TO_CHAR(REG_DATE, 'YYYY-MM-DD') AS REG_DATE,\n");
-		sql.append("	   (SELECT USER_NM FROM CM_USER WHERE USER_ID = BOARD.MOD_ID) AS MOD_ID,\n");
-		sql.append("	   TO_CHAR(MOD_DATE, 'YYYY-MM-DD') AS MOD_DATE\n");
-		sql.append("  FROM BOARD \n");
-		if(search != null){
-			if("title".equals(searchType)){
-				sql.append(" WHERE TITLE LIKE '%'||?||'%'\n");
-				
-			}else if("seq".equals(searchType)){
-				sql.append(" WHERE SEQ = ?\n");
-				
-			}else if("contents".equals(searchType)){
-				sql.append(" WHERE CONTENTS LIKE '%'||?||'%'\n");
-				
-			}else if("titleAndContents".equals(searchType)){
-				sql.append(" WHERE CONTENTS||' '||TITLE LIKE '%'||?||'%'\n");
-				
-			}
-		}
-		
-		sql.append(" ORDER BY MOD_DATE DESC, SEQ DESC\n");
-		sql.append(") A\n");
-		sql.append(") WHERE RN > (? * (? - 1)) AND RN <= (? * ?)"); // 
-		
-		pstmt = conn.prepareStatement(sql.toString());
-		
-		int parameterIndex = 0;
-		if(search != null){
-			if("title".equals(searchType) || "contents".equals(searchType) || "titleAndContents".equals(searchType)){
-				pstmt.setString(1, search);
-				parameterIndex++;
-				
-			}else if("seq".equals(searchType)){
-				pstmt.setInt(1, Integer.parseInt(search));
-				parameterIndex++;
-				
-			}
-		}
-		
-		pstmt.setInt(++parameterIndex, rowCountPerPage);
-		pstmt.setInt(++parameterIndex, currPage);
-		pstmt.setInt(++parameterIndex, rowCountPerPage);
-		pstmt.setInt(++parameterIndex, currPage);
-		
-		System.out.print("쿼리실행 : ");
-		System.out.println(sql.toString());
-		System.out.print("파라미터 : ");
-		System.out.println(search);
-		
-		rs = pstmt.executeQuery();
-		
-		while(rs.next()){
-			if(totalCount == 0)
-				totalCount = rs.getInt(1);
-			
-			Map<String, String> board = new HashMap<>();
-			board.put("seq"     , String.valueOf(rs.getInt(2)));
-			board.put("title"   , rs.getString(3));
-			board.put("contents", rs.getString(4));
-			board.put("regId"   , rs.getString(5));
-			board.put("regDate" , rs.getString(6));
-			board.put("modId"   , rs.getString(7));
-			board.put("modDate" , rs.getString(8));
-			
-			System.out.println(board.toString());
-			boardList.add(board);
-		}
-		
-	}catch(Exception e){
-		e.printStackTrace();
-	}finally{
-		if(rs    != null) try{rs.close();   }catch(Exception ex){}
-		if(pstmt != null) try{pstmt.close();}catch(Exception ex){}
-		if(conn  != null) try{conn.close(); }catch(Exception ex){}
-	}
-	
-	return boardList;
-}
-%>
 <%
+	int currPage = 1, totalPage = 1, pageBlockSize = 10, startPage = 1,  endPage = 1;
 	if(request.getParameter("currPage") != null)
 		currPage = Integer.parseInt(request.getParameter("currPage"));
 	
 	String search     = request.getParameter("search");
 	String searchType = request.getParameter("searchType");
-	
-	List<Map<String, String>> boardList = getBoardList(searchType, search);
-	
-	int totalPage = 1, pageBlockSize = 10, startPage = 1,  endPage = 1;
 
+	BoardService boardService = new BoardService();
+	
+	List<Map<String, String>> boardList = boardService.getBoardList(searchType, search, currPage);
+	
 	if(boardList.size() > 0){
-		totalPage = new Double(Math.ceil(new Double(totalCount)/pageBlockSize)).intValue();
+		totalPage = new Double(Math.ceil(new Double(boardService.getTotalCount())/pageBlockSize)).intValue();
 		
 		if(pageBlockSize < currPage){
 			startPage = (currPage/pageBlockSize) * 10 + 1;
