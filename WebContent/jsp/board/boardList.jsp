@@ -1,24 +1,26 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page import="java.util.List"%>
-<%@ page import="java.util.Map"%>
+<%@ page import="co.kr.ucs.bean.BoardBean"%>
+<%@ page import="co.kr.ucs.bean.SearchBean"%>
 <%@ page import="co.kr.ucs.service.BoardService"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <%
-	int currPage = 1, totalPage = 1, pageBlockSize = 10, startPage = 1,  endPage = 1;
-	if(request.getParameter("currPage") != null)
-		currPage = Integer.parseInt(request.getParameter("currPage"));
-	
-	String search     = request.getParameter("search");
-	String searchType = request.getParameter("searchType");
+	int totalPage = 1, pageBlockSize = 10, startPage = 1,  endPage = 1;
 
-	BoardService boardService = new BoardService();
+
+	List<BoardBean> boardList = (List<BoardBean>)request.getAttribute("boardList");
+	SearchBean searchBean = (SearchBean)request.getAttribute("searchBean");
 	
-	List<Map<String, String>> boardList = boardService.getBoardList(searchType, search, currPage);
+	int totalCount = (Integer)request.getAttribute("totalCount");
+	int currPage = searchBean.getCurrPage();
+	
+	String search = searchBean.getSearch();
+	String searchType = searchBean.getSearchType();
 	
 	if(boardList.size() > 0){
-		totalPage = new Double(Math.ceil(new Double(boardService.getTotalCount())/pageBlockSize)).intValue();
+		totalPage = new Double(Math.ceil(new Double(totalCount)/pageBlockSize)).intValue();
 		
 		if(pageBlockSize < currPage){
 			startPage = (currPage/pageBlockSize) * 10 + 1;
@@ -57,14 +59,14 @@ button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold; cursor: p
 
 <script>
 	function fn_read(seq){
-		location.href = "boardRead.jsp?seq=" + seq;
+		location.href = "<%=request.getContextPath()%>/board/boardRead?seq=" + seq;
 	}
 	
 	function fn_search(page){
 		var search     = document.getElementById("search").value; 
 		var searchType = document.getElementById("searchType").value; 
 		
-		var url = "boardList.jsp?search=" + search + "&searchType=" + searchType;
+		var url = "<%=request.getContextPath()%>/board/boardList?search=" + search + "&searchType=" + searchType;
 		if(page != null){
 			url += "&currPage=" + page;
 		}
@@ -120,13 +122,13 @@ button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold; cursor: p
 			</tr>
 			<% 
 			for(int i=0; i<boardList.size(); i++){ 
-				Map<String, String> board = boardList.get(i);
+				BoardBean board = boardList.get(i);
 			%>
 			<tr>
-				<td><%= board.get("seq") %></td>
-				<td style="text-align: left;"><a onclick="fn_read(<%= board.get("seq") %>);"><%= board.get("title") %></a></td>
-				<td><%= board.get("modId") %></td>
-				<td><%= board.get("modDate") %></td>
+				<td><%= board.getSeq() %></td>
+				<td style="text-align: left;"><a onclick="fn_read(<%= board.getSeq() %>);"><%= board.getTitle() %></a></td>
+				<td><%= board.getModId() %></td>
+				<td><%= board.getModDate()%></td>
 			</tr>
 			<%} %>
 		</table>

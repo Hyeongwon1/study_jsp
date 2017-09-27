@@ -1,12 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="java.util.Map"%>
-<%@ page import="co.kr.ucs.service.BoardService"%>    
+<%@ page import="co.kr.ucs.bean.BoardBean"%>    
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <%
-	int seq = Integer.parseInt(request.getParameter("seq"));
-	BoardService boardService = new BoardService();
-	Map<String, String> board = boardService.getBoard(seq);
+
+	BoardBean board = (BoardBean)request.getAttribute("board");
 %>
 <html>
 <head>
@@ -32,18 +30,18 @@ button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold;; cursor: 
 		</colgroup>
 		<tr>
 			<th>작성자</th>
-			<td><%= board.get("modId") %></td>
+			<td><%= board.getModId() %></td>
 			<th>작성일</th>
-			<td><%= board.get("modDate") %></td>
+			<td><%= board.getModDate() %></td>
 		</tr>
 		<tr>
 			<th>제목</th>
-			<td colspan="3" style="text-align:left;"><%= board.get("title") %></td>
+			<td colspan="3" style="text-align:left;"><%= board.getTitle() %></td>
 		</tr>
 		<tr>
 			<th>내용</th>
 			<td colspan="3" style="height: 300px; padding-top:10px; padding-bottom:5px; text-align: left; vertical-align: top;">
-				<%= board.get("contents") %> 
+				<%= board.getContents() %> 
 			</td>
 		</tr>
 	</table>

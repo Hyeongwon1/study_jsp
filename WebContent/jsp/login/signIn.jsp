@@ -33,7 +33,7 @@
 			return;
 		}
 		
-		document.forms[0].action = "signProcess.jsp";
+		document.forms[0].action = "<%=request.getContextPath()%>/sign/signin";
 		document.forms[0].submit();
 	}
 	

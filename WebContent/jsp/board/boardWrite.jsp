@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ page import="co.kr.ucs.bean.UserBean" %>    
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -22,7 +23,7 @@ button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold;; cursor: 
 			return;
 		}
 		
-		document.forms[0].action = "boardProcess.jsp";
+		document.forms[0].action = "<%= request.getContextPath() %>/board/boardWrite";
 		document.forms[0].submit();
 	}
 </script>
@@ -31,7 +32,7 @@ button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold;; cursor: 
 <div style="width:800px; margin-top:10px; margin-left: auto; margin-right: auto;">
 	<h3>게시판 입력</h3>
 	<form method="post">
-		<input type="hidden" name="userId" value="<%= session.getAttribute("SESSION_USER_ID") %>">
+		<input type="hidden" name="userId" value="<%= ((UserBean)session.getAttribute("SESSION_USER")).getUserId() %>">
 		<table>
 			<colgroup>
 				<col width="150px"/>

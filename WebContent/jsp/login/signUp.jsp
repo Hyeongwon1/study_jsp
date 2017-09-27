@@ -68,7 +68,7 @@
 <body>
 <div style="width:400px; height: 200px; margin-top:150px; margin-left: auto; margin-right: auto;">
 	<h3>회원가입</h3>
-	<form method="post" action="signProcess.jsp">
+	<form method="post" action="<%=request.getContextPath()%>/sign/signup">
 		<input type="hidden" name="process" value="signup">
 		<table>
 			<colgroup>

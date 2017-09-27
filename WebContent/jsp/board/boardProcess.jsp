@@ -15,7 +15,12 @@
 	String contents = request.getParameter("contents");
 	
 	BoardService boardService = new BoardService();
-	String error = boardService.saveBoard(title, contents, userId);
+	String error = null;
+	try{
+		boardService.saveBoard(title, contents, userId);
+	}catch(Exception e){
+		error = e.getMessage();
+	}
 	
  %>
  <script>
