@@ -25,11 +25,11 @@
 			String userNm = request.getParameter("userNm");
 			String email  = request.getParameter("email");
 			
-			if(signService.signUp(userId, userNm, userPw, email)){
+			/* if(signService.signUp(userId, userNm, userPw, email)){
 				result = "successSignup";	
 			}else{
 				result = "failSignup";
-			}
+			} */
 		}
 		
 	// 로그인

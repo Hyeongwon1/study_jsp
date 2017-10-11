@@ -6,20 +6,29 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import co.kr.ucs.bean.UserBean;
+import co.kr.ucs.dao.DBConnectionPool;
+import co.kr.ucs.dao.DBConnectionPoolManager;
 import co.kr.ucs.dao.DBManager;
 
 public class SignService {
 	
-	public UserBean getUser(String userId, String userPw)throws SQLException, ClassNotFoundException{
+	DBConnectionPoolManager dbPoolManager = DBConnectionPoolManager.getInstance();
+	DBConnectionPool dbPool;
+	
+	public SignService() {
+		dbPoolManager.setDBPool(DBManager.getUrl(), DBManager.getId(), DBManager.getPw());
+		dbPool = dbPoolManager.getDBPool();
+	}
+	
+	public UserBean getUser(String userId, String userPw)throws SQLException {
 		UserBean userBean = null;
 		
-		DBManager dbManager = new DBManager();
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
 		try{
-			conn = dbManager.getConnection();
+			conn = dbPool.getConnection();
 			
 			StringBuffer sql = new StringBuffer();
 			sql.append("SELECT USER_ID, USER_NM, USER_PW, EMAIL FROM CM_USER WHERE USER_ID = ?");
@@ -48,7 +57,8 @@ public class SignService {
 			e.printStackTrace();
 			throw e;
 		}finally{
-			dbManager.close(rs, pstmt, conn);
+			dbPool.freeConnection(conn);
+			DBManager.close(rs, pstmt);
 		}
 		
 		return userBean;
@@ -56,19 +66,18 @@ public class SignService {
 	}
 	
 	
-	public int getExistsUser(String userId)throws SQLException, ClassNotFoundException{
+	public int getExistsUser(String userId)throws SQLException{
 		return getExistsUser(userId, null);
 	}
 
-	public int getExistsUser(String userId, String userPw)throws SQLException, ClassNotFoundException{
+	public int getExistsUser(String userId, String userPw)throws SQLException{
 		int count = 0;
-		DBManager dbManager = new DBManager();
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
 		try{
-			conn = dbManager.getConnection();
+			conn = dbPool.getConnection();
 			
 			StringBuffer sql = new StringBuffer();
 			sql.append("SELECT COUNT(*) FROM CM_USER WHERE USER_ID = ?");
@@ -97,19 +106,19 @@ public class SignService {
 			e.printStackTrace();
 			throw e;
 		}finally{
-			dbManager.close(rs, pstmt, conn);
+			dbPool.freeConnection(conn);
+			DBManager.close(rs, pstmt);
 		}
 		
 		return count;
 		
 	}
 	
-	public void signUp(String userId, String userNm, String userPw, String email)throws SQLException, ClassNotFoundException{
-		DBManager dbManager = new DBManager();
+	public void signUp(String userId, String userNm, String userPw, String email)throws SQLException{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try{
-			conn = dbManager.getConnection();
+			conn = dbPool.getConnection();
 			
 			StringBuffer sql = new StringBuffer();
 			sql.append("INSERT INTO CM_USER (");
@@ -132,7 +141,8 @@ public class SignService {
 			e.printStackTrace();
 			throw e;
 		}finally{
-			dbManager.close(null, pstmt, conn);
+			dbPool.freeConnection(conn);
+			DBManager.close(null, pstmt);
 		}
 	}
 }

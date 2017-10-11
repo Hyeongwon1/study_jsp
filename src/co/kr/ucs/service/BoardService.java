@@ -11,13 +11,23 @@ import java.util.Map;
 
 import co.kr.ucs.bean.BoardBean;
 import co.kr.ucs.bean.SearchBean;
+import co.kr.ucs.dao.DBConnectionPool;
+import co.kr.ucs.dao.DBConnectionPoolManager;
 import co.kr.ucs.dao.DBManager;
 
 public class BoardService {
 	private int totalCount = 0;
 	private int rowCountPerPage = 10;
 	
-	public List<BoardBean> getBoardList(SearchBean searchBean)throws SQLException, ClassNotFoundException{
+	DBConnectionPoolManager dbPoolManager = DBConnectionPoolManager.getInstance();
+	DBConnectionPool dbPool;
+	
+	public BoardService() {
+		dbPoolManager.setDBPool(DBManager.getUrl(), DBManager.getId(), DBManager.getPw());
+		dbPool = dbPoolManager.getDBPool();
+	}
+	
+	public List<BoardBean> getBoardList(SearchBean searchBean)throws SQLException{
 		List<Map<String, String>> list = getBoardList(searchBean.getSearchType(), searchBean.getSearch(), searchBean.getCurrPage());
 		
 		List<BoardBean> boardList = new ArrayList<>();
@@ -28,16 +38,14 @@ public class BoardService {
 		return boardList;
 	}
 	
-	public List<Map<String, String>> getBoardList(String searchType, String search, int currPage)throws SQLException, ClassNotFoundException{
-		DBManager dbManager = new DBManager();
-		
+	public List<Map<String, String>> getBoardList(String searchType, String search, int currPage)throws SQLException{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
 		List<Map<String, String>> boardList = new ArrayList<>(); 
 		try{
-			conn = dbManager.getConnection();
+			conn = dbPool.getConnection();
 			
 			StringBuffer sql = new StringBuffer();
 			sql.append("SELECT * FROM (\n");
@@ -124,18 +132,18 @@ public class BoardService {
 			throw e;
 			
 		}finally{
-			dbManager.close(rs, pstmt, conn);
+			dbPool.freeConnection(conn);
+			DBManager.close(rs, pstmt);
 		}
 		
 		return boardList;
 	}
 	
-	public void saveBoard(String title, String contents, String userId) throws ClassNotFoundException, SQLException {
-		DBManager dbManager = new DBManager();
+	public void saveBoard(String title, String contents, String userId) throws SQLException {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try{
-			conn = dbManager.getConnection();
+			conn = dbPool.getConnection();
 			
 			StringBuffer sql = new StringBuffer();
 			sql.append("INSERT INTO BOARD (");
@@ -156,14 +164,15 @@ public class BoardService {
 			System.out.println(title + ", "  + contents + ", "  + userId);
  			
 			pstmt.executeUpdate();
-		}catch(ClassNotFoundException | SQLException e){
+		}catch(SQLException e){
 			throw e;
 		}finally{
-			dbManager.close(null, pstmt, conn);
+			dbPool.freeConnection(conn);
+			DBManager.close(null, pstmt);
 		}
 	}
 	
-	public BoardBean getBoardBean(int seq)throws SQLException, ClassNotFoundException {
+	public BoardBean getBoardBean(int seq)throws SQLException {
 		return mapToBean(getBoard(seq));
 	}
 	
@@ -181,16 +190,14 @@ public class BoardService {
 		return bean;
 	}
 	
-	public Map<String, String> getBoard(int seq)throws SQLException, ClassNotFoundException{
-		DBManager dbManager = new DBManager();
-		
+	public Map<String, String> getBoard(int seq)throws SQLException{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
 		Map<String, String> board = new HashMap<>();
 		try{
-			conn = dbManager.getConnection();
+			conn = dbPool.getConnection();
 			
 			StringBuffer sql = new StringBuffer();
 			sql.append("SELECT SEQ,\n");
@@ -231,7 +238,8 @@ public class BoardService {
 			throw e;
 			
 		}finally{
-			dbManager.close(rs,  pstmt, conn);
+			dbPool.freeConnection(conn);
+			DBManager.close(rs,  pstmt);
 		}
 		
 		return board;

@@ -67,7 +67,7 @@ public class BoardController extends HttpServlet {
 			
 			try {
 				request.setAttribute("board", boardService.getBoardBean(seq));
-			} catch (ClassNotFoundException | SQLException e) {
+			} catch (SQLException e) {
 				e.printStackTrace();
 				errorMessage = "게시판 조회 처리 오류 발생 : " + e.getMessage();
 			}
@@ -81,7 +81,7 @@ public class BoardController extends HttpServlet {
 			String contents = request.getParameter("contents");
 			try {
 				boardService.saveBoard(title, contents, userId);
-			} catch (ClassNotFoundException | SQLException e) {
+			} catch (SQLException e) {
 				e.printStackTrace();
 				errorMessage = "게시판 글쓰기 저장 처리 오류 발생 : " + e.getMessage();
 			}
