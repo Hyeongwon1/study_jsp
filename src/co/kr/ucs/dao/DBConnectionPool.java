@@ -9,7 +9,6 @@ public class DBConnectionPool {
 
 	private int initConns; // 초기에 Pool 에 생성할 Connection 개수
 	private int maxConns;  // Pool 에 생성할 최대 Connection 개수 
-	private int currConns; // 현재까지 생성된 Connection 개수
 	
 	private long timeOut = 1000 * 30; // Connection 을 얻을때 대기시간 30 초
 	
@@ -60,7 +59,6 @@ public class DBConnectionPool {
 		
 		this.connPool[pos] = conn;
 		this.connStatus[pos] = 1;
-		this.currConns = pos;
 		
 		return this.connPool[pos];
 	}

@@ -16,20 +16,20 @@
 	
 	BoardService boardService = new BoardService();
 	String error = null;
-	try{
+	/* try{
 		boardService.saveBoard(title, contents, userId);
 	}catch(Exception e){
 		error = e.getMessage();
-	}
+	} */
 	
  %>
  <script>
- 	<% if(error != null){%>
+ 	<%-- <% if(error != null){%>
  		alert("엘러발생 : " + <%= error %>);
  		history.back();
  	<% } else {%>
  		alert("저장 하였습니다.");
  		location.href = 'boardList.jsp';
- 	<% }%>
+ 	<% }%> --%>
  </script>
  
