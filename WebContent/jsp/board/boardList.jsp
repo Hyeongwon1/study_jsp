@@ -75,7 +75,7 @@ button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold; cursor: p
 	}
 	
 	function fn_write(){
-		location.href = "boardWrite.jsp";
+		location.href = "<%=request.getContextPath()%>/jsp/board/boardWrite.jsp";
 	}
 </script>
 

@@ -74,13 +74,14 @@ public class BoardController extends HttpServlet {
 			
 		// 글쓰기
 		} else if(uri.indexOf("/board/boardWrite") > -1) {
-			view = request.getContextPath()+"/board/boardList";
-			
 			String userId   = request.getParameter("userId");
 			String title    = request.getParameter("title");
 			String contents = request.getParameter("contents");
 			try {
 				boardService.saveBoard(title, contents, userId);
+				
+				response.sendRedirect(request.getContextPath()+"/board/boardList");
+				return;
 			} catch (SQLException e) {
 				e.printStackTrace();
 				errorMessage = "게시판 글쓰기 저장 처리 오류 발생 : " + e.getMessage();

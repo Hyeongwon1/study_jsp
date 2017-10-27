@@ -47,7 +47,7 @@ public class SignController extends HttpServlet {
 					errorMessage = "아이디 또는 비밀번호를 확인하세요.";
 				} else {
 					HttpSession session = request.getSession(true);
-					session.setAttribute("SESSION_USER", session);
+					session.setAttribute("SESSION_USER", userBean);
 				}
 				
 			}catch(Exception e) {
@@ -80,8 +80,7 @@ public class SignController extends HttpServlet {
 			out.flush();
 			
 		} else {
-			RequestDispatcher dispatcher = request.getRequestDispatcher(view);
-			dispatcher.forward(request, response);
+			response.sendRedirect(view);
 		}
 		
 	}
