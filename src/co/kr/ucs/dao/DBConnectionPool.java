@@ -105,10 +105,12 @@ public class DBConnectionPool {
 	 * @param conn
 	 */
 	public void freeConnection(Connection conn) {
-		for(int i=0; i<=this.maxConns; i++) {
-			if(this.connPool[i] == conn) {
-				this.connStatus[i] = 1;
-				break;
+		if(conn != null) {
+			for(int i=0; i<=this.maxConns; i++) {
+				if(this.connPool[i] == conn) {
+					this.connStatus[i] = 1;
+					break;
+				}
 			}
 		}
 	}

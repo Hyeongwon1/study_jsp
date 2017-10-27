@@ -5,9 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import co.kr.ucs.bean.BoardBean;
 import co.kr.ucs.bean.SearchBean;
@@ -28,22 +26,16 @@ public class BoardService {
 	}
 	
 	public List<BoardBean> getBoardList(SearchBean searchBean)throws SQLException{
-		List<Map<String, String>> list = getBoardList(searchBean.getSearchType(), searchBean.getSearch(), searchBean.getCurrPage());
-		
-		List<BoardBean> boardList = new ArrayList<>();
-		for(Map<String, String> data : list) {
-			boardList.add(mapToBean(data));
-		}
-
+		List<BoardBean> boardList = getBoardList(searchBean.getSearchType(), searchBean.getSearch(), searchBean.getCurrPage());
 		return boardList;
 	}
 	
-	public List<Map<String, String>> getBoardList(String searchType, String search, int currPage)throws SQLException{
+	public List<BoardBean> getBoardList(String searchType, String search, int currPage)throws SQLException{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
-		List<Map<String, String>> boardList = new ArrayList<>(); 
+		List<BoardBean> boardList = new ArrayList<>(); 
 		try{
 			conn = dbPool.getConnection();
 			
@@ -103,10 +95,8 @@ public class BoardService {
 			pstmt.setInt(++parameterIndex, rowCountPerPage);
 			pstmt.setInt(++parameterIndex, currPage);
 			
-			System.out.print("쿼리실행 : ");
-			System.out.println(sql.toString());
-			System.out.print("파라미터 : ");
-			System.out.println(search);
+			System.out.println("쿼리실행 : " + sql.toString());
+			System.out.println("파라미터 : " + search + ", " + searchType + ", " + currPage);
 			
 			rs = pstmt.executeQuery();
 			
@@ -114,14 +104,14 @@ public class BoardService {
 				if(totalCount == 0)
 					totalCount = rs.getInt(1);
 				
-				Map<String, String> board = new HashMap<>();
-				board.put("seq"     , String.valueOf(rs.getInt(2)));
-				board.put("title"   , rs.getString(3));
-				board.put("contents", rs.getString(4));
-				board.put("regId"   , rs.getString(5));
-				board.put("regDate" , rs.getString(6));
-				board.put("modId"   , rs.getString(7));
-				board.put("modDate" , rs.getString(8));
+				BoardBean board = new BoardBean();
+				board.setSeq(rs.getInt(2));
+				board.setTitle(rs.getString(3));
+				board.setContents(rs.getString(4));
+				board.setRegId(rs.getString(5));
+				board.setRegDate(rs.getString(6));
+				board.setModId(rs.getString(7));
+				board.setModDate(rs.getString(8));
 				
 				System.out.println(board.toString());
 				boardList.add(board);
@@ -139,7 +129,7 @@ public class BoardService {
 		return boardList;
 	}
 	
-	public void saveBoard(String title, String contents, String userId) throws SQLException {
+	public void saveBoard(BoardBean params) throws SQLException {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try{
@@ -153,15 +143,13 @@ public class BoardService {
 			sql.append("?, ?, ?, SYSDATE, ?, SYSDATE)");
 			
 			pstmt = conn.prepareStatement(sql.toString());
- 			pstmt.setString(1, title);	
-			pstmt.setString(2, contents);	
-			pstmt.setString(3, userId);	
-			pstmt.setString(4, userId);
+ 			pstmt.setString(1, params.getTitle());	
+			pstmt.setString(2, params.getContents());	
+			pstmt.setString(3, params.getRegId());	
+			pstmt.setString(4, params.getModId());
 			
-			System.out.print("쿼리실행 : ");
-			System.out.println(sql.toString());
-			System.out.print("파라미터 : ");
-			System.out.println(title + ", "  + contents + ", "  + userId);
+			System.out.println("쿼리실행 : " + sql.toString());
+			System.out.println("파라미터 : " + params);
  			
 			pstmt.executeUpdate();
 		}catch(SQLException e){
@@ -172,30 +160,12 @@ public class BoardService {
 		}
 	}
 	
-	public BoardBean getBoardBean(int seq)throws SQLException {
-		return mapToBean(getBoard(seq));
-	}
-	
-	private BoardBean mapToBean(Map<String, String> board) {
-		BoardBean bean = new BoardBean();
-		
-		bean.setSeq(Integer.parseInt(board.get("seq")));
-		bean.setTitle(board.get("title"));
-		bean.setContents(board.get("contents"));
-		bean.setRegId(board.get("regId"));
-		bean.setRegDate(board.get("regDate"));
-		bean.setModId(board.get("modId"));
-		bean.setModDate(board.get("modDate"));
-		
-		return bean;
-	}
-	
-	public Map<String, String> getBoard(int seq)throws SQLException{
+	public BoardBean getBoard(BoardBean params)throws SQLException{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
-		Map<String, String> board = new HashMap<>();
+		BoardBean board = new BoardBean();
 		try{
 			conn = dbPool.getConnection();
 			
@@ -212,25 +182,23 @@ public class BoardService {
 			
 			pstmt = conn.prepareStatement(sql.toString());
 			
-			pstmt.setInt(1, seq);
+			pstmt.setInt(1, params.getSeq());
 			
-			System.out.print("쿼리실행 : ");
-			System.out.println(sql.toString());
-			System.out.print("파라미터 : ");
-			System.out.println(seq);
+			System.out.println("쿼리실행 : " + sql.toString());
+			System.out.println("파라미터 : " + params.getSeq());
 			
 			rs = pstmt.executeQuery();
 			
 			if(rs.next()){
-				board.put("seq"     , String.valueOf(rs.getInt(1)));
-				board.put("title"   , rs.getString(2));
-				board.put("contents", rs.getString(3));
-				board.put("regId"   , rs.getString(4));
-				board.put("regDate" , rs.getString(5));
-				board.put("modId"   , rs.getString(6));
-				board.put("modDate" , rs.getString(7));
+				board.setSeq(rs.getInt(1));
+				board.setTitle(rs.getString(2));
+				board.setContents(rs.getString(3));
+				board.setRegId(rs.getString(4));
+				board.setRegDate(rs.getString(5));
+				board.setModId(rs.getString(6));
+				board.setModDate(rs.getString(7));
 				
-				System.out.println(board.toString());
+				System.out.println(board);
 			}
 			
 		}catch(Exception e){

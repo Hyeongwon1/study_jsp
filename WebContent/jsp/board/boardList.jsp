@@ -1,37 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="java.util.List"%>
-<%@ page import="co.kr.ucs.bean.BoardBean"%>
-<%@ page import="co.kr.ucs.bean.SearchBean"%>
-<%@ page import="co.kr.ucs.service.BoardService"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-
-<%
-	int totalPage = 1, pageBlockSize = 10, startPage = 1,  endPage = 1;
-
-
-	List<BoardBean> boardList = (List<BoardBean>)request.getAttribute("boardList");
-	SearchBean searchBean = (SearchBean)request.getAttribute("searchBean");
-	
-	int totalCount = (Integer)request.getAttribute("totalCount");
-	int currPage = searchBean.getCurrPage();
-	
-	String search = searchBean.getSearch();
-	String searchType = searchBean.getSearchType();
-	
-	if(boardList.size() > 0){
-		totalPage = new Double(Math.ceil(new Double(totalCount)/pageBlockSize)).intValue();
-		
-		if(pageBlockSize < currPage){
-			startPage = (currPage/pageBlockSize) * 10 + 1;
-		}
-		
-		endPage = startPage + pageBlockSize - 1;
-		if(endPage > totalPage) endPage = totalPage;
-		
-	}
-	
-%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -52,30 +21,117 @@ button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold; cursor: p
 
 .page {text-align: center;}
 .page ul {display: inline-block;}
-.page li {display: inline;}
+.page li {display: inline; margin-right:10px}
 
 .page li > a {font-weight: normal; cursor: pointer;}
 </style>
 
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script>
-	function fn_read(seq){
-		location.href = "<%=request.getContextPath()%>/board/boardRead?seq=" + seq;
+	var globalVar = {
+		currPage      : 1,
+		startPage     : 1,
+		endPage       : 1,
+		pageBlockSize : 10,
+		totalPage     : 1
 	}
 	
-	function fn_search(page){
-		var search     = document.getElementById("search").value; 
-		var searchType = document.getElementById("searchType").value; 
+	$(function(){
+		$('#btn_write').on('click', function(){
+			location.href = "<%=request.getContextPath()%>/jsp/board/boardWrite.jsp";
+		})
 		
-		var url = "<%=request.getContextPath()%>/board/boardList?search=" + search + "&searchType=" + searchType;
-		if(page != null){
-			url += "&currPage=" + page;
+		$('#btn_search').on('click', function(){
+			fn_search(1);
+		})
+		
+		fn_search(1);
+	})
+
+	function fn_search(page){
+		var search     = $("#search").val(); 
+		var searchType = $("#searchType").val();
+		
+		var param = {
+			'search'     : $("#search").val(),
+			'searchType' : $("#searchType").val(),
+			'currPage'   : page
 		}
 		
-		location.href = url;  
+		$.ajax({
+			url:'/board/boardList',
+			data: JSON.stringify(param),
+			type:'POST',
+			contentType:'application/json;charset=utf-8',
+			dataType:'json',
+			error:function(xhr,status,msg){
+				alert("상태값 :" + status + " Http에러메시지 :"+msg);
+			},
+			success:function(data){
+				if(data['error']){
+					alert(data['error']);
+					return;
+				}
+				
+				globalVar.currPage = page;
+				
+				fn_drawBoardList(data);
+				fn_drawPaging(data['totalCount']);
+				
+			}
+		});
+		
 	}
 	
-	function fn_write(){
-		location.href = "boardWrite.jsp";
+	function fn_drawBoardList(data){
+		$('.list tbody').empty();
+		
+		$.each(data['boardList'], function(index, board){
+			$('<tr>')
+			.append($('<td>').html(board['seq']))
+			.append($('<td>').css('text-align', 'left')
+					.append($('<a>').attr('onclick', 'fn_read(' + board['seq'] + ');').html(board['title'])))
+			.append($('<td>').html(board['modId']))
+			.append($('<td>').html(board['modDate']))
+			.appendTo($('.list tbody'));
+		})
+	}
+	
+	function fn_drawPaging(totalCount){
+		globalVar.totalPage = Math.round(Number(totalCount) / globalVar.pageBlockSize);
+		globalVar.startPage = parseInt(globalVar.currPage/globalVar.pageBlockSize) * 10 + 1;
+		
+		globalVar.endPage = globalVar.startPage + globalVar.pageBlockSize - 1;
+		if(globalVar.endPage > globalVar.totalPage) globalVar.endPage = globalVar.totalPage;
+		
+		var pageHtml = '';
+		
+		if(globalVar.endPage > 1 && globalVar.currPage > 1){
+			pageHtml += '<li style="padding: 0px 8px; border: 2px solid #555;"><a onclick="fn_search(1);">&lt;&lt;</a></li>';
+		}
+		
+		if(globalVar.endPage > globalVar.pageBlockSize){
+			pageHtml += '<li style="padding: 0px 8px; border: 2px solid #555;"><a onclick="fn_search(' + (globalVar.startPage - 10) + '); ">&nbsp;&lt;&nbsp;</a></li>';
+		}
+		
+		for(var i= globalVar.startPage; i <= globalVar.endPage; i++){
+			pageHtml += '<li>' + ((globalVar.currPage == i) ? "<strong>" + i + "</strong>" : "<a onclick=\"fn_search(" + i + ");\">" + i + "</a>") + '</li>';
+		}
+		
+		if(globalVar.totalPage > globalVar.endPage){
+			pageHtml += '<li style="padding: 0px 8px; border: 2px solid #555;"><a onclick="fn_search(' + (globalVar.startPage + 10) + ');">&nbsp;>&nbsp;</a></li>';
+		}
+		
+		if(globalVar.totalPage > globalVar.currPage){
+			pageHtml += '<li style="padding: 0px 8px; border: 2px solid #555;"><a onclick="fn_search(' + globalVar.totalPage + ');">>></a></li>';
+		}
+		
+		$('.page ul').empty().append(pageHtml);
+		
+	}
+	
+	function fn_read(seq){
+		location.href = "<%=request.getContextPath()%>/jsp/board/boardRead.jsp?seq=" + seq;
 	}
 </script>
 
@@ -94,15 +150,15 @@ button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold; cursor: p
 			<tr>
 				<td>
 					<select id="searchType" name="searchType">
-						<option value="title" <%= ("title".equals(searchType) ? "selected" : "")%> >제목</option>
-						<option value="seq" <%= ("seq".equals(searchType) ? "selected" : "")%> >글번호</option>
-						<option value="contents" <%= ("contents".equals(searchType) ? "selected" : "")%> >내용</option>
-						<option value="titleAndContents" <%= ("titleAndContents".equals(searchType) ? "selected" : "")%> >제목+내용</option>
+						<option value="title">제목</option>
+						<option value="seq">글번호</option>
+						<option value="contents">내용</option>
+						<option value="titleAndContents">제목+내용</option>
 					</select>
 				</td>
-				<td><input id="search" name="search" type="text" value="<%=(search == null) ? "" : search%>"></td>
-				<td style="padding-right:0px; border: 0px;"><button onclick="fn_search();">조회</button></td>
-				<td style="padding-right:0px; border: 0px;"><button onclick="fn_write();">글쓰기</button></td>
+				<td><input id="search" name="search" type="text"></td>
+				<td style="padding-right:0px; border: 0px;"><button id="btn_search">조회</button></td>
+				<td style="padding-right:0px; border: 0px;"><button id="btn_write">글쓰기</button></td>
 			</tr>
 		</table>
 	</div>
@@ -114,51 +170,19 @@ button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold; cursor: p
 				<col width="100px"/>
 				<col width="100px"/>
 			</colgroup>
-			<tr>
-				<th>글번호</th>
-				<th>제목</th>
-				<th>작성자</th>
-				<th>작성일</th>
-			</tr>
-			<% 
-			for(int i=0; i<boardList.size(); i++){ 
-				BoardBean board = boardList.get(i);
-			%>
-			<tr>
-				<td><%= board.getSeq() %></td>
-				<td style="text-align: left;"><a onclick="fn_read(<%= board.getSeq() %>);"><%= board.getTitle() %></a></td>
-				<td><%= board.getModId() %></td>
-				<td><%= board.getModDate()%></td>
-			</tr>
-			<%} %>
+			<thead>
+				<tr>
+					<th>글번호</th>
+					<th>제목</th>
+					<th>작성자</th>
+					<th>작성일</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
 		</table>
 	</div>
 	<div class="page">
 		<ul>
-	<%  if(endPage > 1 && currPage > 1){ %>
-			<li style="padding: 0px 8px; border: 2px solid #555;"><a onclick="fn_search(1);">&lt;&lt;</a></li>
-	<% 
-		}
-		if(endPage > pageBlockSize){
-	%>
-			<li style="padding: 0px 8px; border: 2px solid #555;"><a onclick="fn_search(<%= startPage - 10 %>);">&nbsp;&lt;&nbsp;</a></li>
-	<% 
-		} 
-		for(int i= startPage; i <= endPage; i++){
-	%>
-			<li><%= (currPage == i) ? "<strong>" + i + "</strong>" : "<a onclick=\"fn_search(" + i + ");\">" + i + "</a>" %></li>
-	<%
-		}
-		
-		if(totalPage > endPage){ 
-	%>
-			<li style="padding: 0px 8px; border: 2px solid #555;"><a onclick="fn_search(<%= startPage + 10 %>);">&nbsp;>&nbsp;</a></li>
-	<% 
-		}
-		if(totalPage > currPage){
-	%>
-			<li style="padding: 0px 8px; border: 2px solid #555;"><a onclick="fn_search(<%= totalPage %>);">>></a></li>
-	<% } %>
 		</ul>
 	</div>
 </div>

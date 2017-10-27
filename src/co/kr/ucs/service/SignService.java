@@ -20,7 +20,7 @@ public class SignService {
 		dbPool = dbPoolManager.getDBPool();
 	}
 	
-	public UserBean getUser(String userId, String userPw)throws SQLException {
+	public UserBean getUser(UserBean params)throws SQLException {
 		UserBean userBean = null;
 		
 		Connection conn = null;
@@ -35,15 +35,13 @@ public class SignService {
 			sql.append(" AND USER_PW = ?");
 			
 			pstmt = conn.prepareStatement(sql.toString());
-			pstmt.setString(1, userId);
-			pstmt.setString(2, userPw);
+			pstmt.setString(1, params.getUserId());
+			pstmt.setString(2, params.getUserPw());
 			
 			rs = pstmt.executeQuery();
 			
-			System.out.print("쿼리실행 : ");
-			System.out.println(sql.toString());
-			System.out.print("파라미터 : ");
-			System.out.println(userId);
+			System.out.println("쿼리실행 : " + sql.toString());
+			System.out.println("파라미터 : " + params);
 			
 			if(rs.next()) {
 				userBean = new UserBean();
@@ -114,10 +112,14 @@ public class SignService {
 		
 	}
 	
-	public void signUp(String userId, String userNm, String userPw, String email)throws SQLException{
+	public void signUp(UserBean params)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try{
+			if(getExistsUser(params.getUserId()) > 0) {
+				throw new Exception("중복된 아이디 입니다."); 
+			}
+			
 			conn = dbPool.getConnection();
 			
 			StringBuffer sql = new StringBuffer();
@@ -127,14 +129,13 @@ public class SignService {
 			sql.append("?, ? ,?, ?)");
 			
 			pstmt = conn.prepareStatement(sql.toString());
-			pstmt.setString(1, userId);	
-			pstmt.setString(2, userNm);	
-			pstmt.setString(3, userPw);	
-			pstmt.setString(4, email);
+			pstmt.setString(1, params.getUserId());	
+			pstmt.setString(2, params.getUserNm());	
+			pstmt.setString(3, params.getUserPw());	
+			pstmt.setString(4, params.getEmail());
 			
-			System.out.print("쿼리실행 : ");
-			System.out.println(sql.toString());
-			System.out.print("파라미터 : ");
+			System.out.println("쿼리실행 : " + sql.toString());
+			System.out.println("파라미터 : " + params);
 			
 			pstmt.executeUpdate();
 		}catch(Exception e){

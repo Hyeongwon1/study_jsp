@@ -16,57 +16,83 @@
 	button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold;; cursor: pointer;}
 </style>
 
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
+	$(function(){
+		$('#btn_login').on('click', function(){
+			fn_login();
+		})
+		$('#btn_signUp').on('click', function(){
+			location.href = "signUp.jsp";
+		})
+	})
+	
+	
 	function fn_login(){
-		var userId = document.getElementById("userId");
-		var userPw = document.getElementById("userPw");
+		var userId = $("#userId");
+		var userPw = $("#userPw");
 		
-		if(userId.value == null || userId.value == ''){
+		if(userId.val() == null || userId.val() == ''){
 			alert('아이디를 입력하세요');
 			userId.focus();
 			return;
 		}
 		
-		if(userPw.value == null || userPw.value == ''){
+		if(userPw.val() == null || userPw.val() == ''){
 			alert('비밀번호를 입력하세요');
 			userPw.focus();
 			return;
 		}
 		
-		document.forms[0].action = "<%=request.getContextPath()%>/sign/signin";
-		document.forms[0].submit();
+		var param = {
+			'userId' : userId.val(),
+			'userPw' : userPw.val()
+		}
+		
+		$.ajax({
+			url:'/sign/signin',
+			data: JSON.stringify(param),
+			type:'POST',
+			contentType:'application/json;charset=utf-8',
+			dataType:'json',
+			error:function(xhr,status,msg){
+				alert("상태값 :" + status + " Http에러메시지 :"+msg);
+			},
+			success:function(data){
+				if(data['error']){
+					alert(data['error']);
+					return;
+				}
+				
+				location.href = "<%=request.getContextPath()%>/jsp/board/boardList.jsp";
+			}
+		});
 	}
 	
-	function fn_signUp(){
-		location.href = "signUp.jsp";
-	}
 </script>
 </head>
 <body>
 <div style="width:400px; height: 200px; margin-top:150px; margin-left: auto; margin-right: auto;">
 	<h3>로그인</h3>
-	<form method="post">
-		<input type="hidden" name="process" value="signin">
-		<table>
-			<colgroup>
-				<col width="150px"/>
-				<col width="*"/>
-				<col width="150px"/>
-				<col width="*"/>
-			</colgroup>
-			<tr>
-				<th>아이디*</th>
-				<td><input id="userId" name="userId" type="text"></td>
-			</tr>
-			<tr>
-				<th>비밀번호*</th>
-				<td><input id="userPw" name="userPw" type="password"></td>
-			</tr>
-		</table>
-	</form>
+	<table>
+		<colgroup>
+			<col width="150px"/>
+			<col width="*"/>
+			<col width="150px"/>
+			<col width="*"/>
+		</colgroup>
+		<tr>
+			<th>아이디*</th>
+			<td><input id="userId" name="userId" type="text"></td>
+		</tr>
+		<tr>
+			<th>비밀번호*</th>
+			<td><input id="userPw" name="userPw" type="password"></td>
+		</tr>
+	</table>
 	<div style="text-align:center; margin-top:10px;">
-		<button onclick="fn_login();">로그인</button>
-		<button onclick="fn_signUp();">회원가입</button>
+		<button id="btn_login">로그인</button>
+		<button id="btn_signUp">회원가입</button>
 	</div>
 </div>
 </body>

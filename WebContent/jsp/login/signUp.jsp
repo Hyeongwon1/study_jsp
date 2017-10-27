@@ -12,63 +12,94 @@
 	input {width:100%; height: 25px; padding-left:5px;}
 	button {width:100px;mrgin-top:10px; font-size: 14px; font-weight:bold;; cursor: pointer;}
 </style>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
+	$(function(){
+		$('#btn_signup').on('click', function(){
+			fn_signup();
+		})
+		$('#btn_cancel').on('click', function(){
+			history.back();
+		})
+	})
+
 	function fn_signup(){
-		var userId        = document.getElementById("userId");
-		var userNm        = document.getElementById("userNm");
-		var userPw        = document.getElementById("userPw");
-		var userPwConfirm = document.getElementById("userPwConfirm");
-		var email         = document.getElementById("email");
+		var userId        = $("#userId");
+		var userNm        = $("#userNm");
+		var userPw        = $("#userPw");
+		var userPwConfirm = $("#userPwConfirm");
+		var email         = $("#email");
 		
-		if(userId.value == null || userId.value == ''){
+		if(userId.val() == null || userId.val() == ''){
 			alert('아이디를 입력하세요');
 			userId.focus();
 			return;
 		}
 		
-		if(userNm.value == null || userNm.value == ''){
+		if(userNm.val() == null || userNm.val() == ''){
 			alert('이름을 입력하세요');
 			userNm.focus();
 			return;
 		}
 		
-		if(userPw.value == null || userPw.value == ''){
+		if(userPw.val() == null || userPw.val() == ''){
 			alert('비밀번호를 입력하세요');
 			userPw.focus();
 			return;
 		}
 		
-		if(userPwConfirm.value == null || userPwConfirm.value == ''){
+		if(userPwConfirm.val() == null || userPwConfirm.val() == ''){
 			alert('비밀번호 확인을 입력하세요');
 			userPwConfirm.focus();
 			return;
 		}
 		
-		if(userPw.value != userPwConfirm.value){
+		if(userPw.val() != userPwConfirm.val()){
 			alert('비밀번호와 비밀번호 확인이 틀립니다.');
 			userPw.focus();
 			return;
 		}
 		
-		if(email.value == null || email.value == ''){
+		if(email.val() == null || email.val() == ''){
 			alert('이메일을 입력하세요');
 			email.focus();
 			return;
 		}
 		
-		document.forms[0].submit();
+		var param = {
+			'userId' : userId.val(),
+			'userPw' : userPw.val(),
+			'userNm' : userNm.val(),
+			'email'  : email.val()
+		}
+		
+		$.ajax({
+			url:'/sign/signup',
+			data: JSON.stringify(param),
+			type:'POST',
+			contentType:'application/json;charset=utf-8',
+			dataType:'json',
+			error:function(xhr,status,msg){
+				alert("상태값 :" + status + " Http에러메시지 :"+msg);
+			},
+			success:function(data){
+				if(data['error']){
+					alert(data['error']);
+					return;
+				}
+				
+				location.href = "<%=request.getContextPath()%>/jsp/login/signIn.jsp";
+			}
+		});
 	}
 	
-	function fn_cancel(){
-		history.back();
-	}
 </script>
 
 </head>
 <body>
 <div style="width:400px; height: 200px; margin-top:150px; margin-left: auto; margin-right: auto;">
 	<h3>회원가입</h3>
-	<form method="post" action="<%=request.getContextPath()%>/sign/signup">
+	<form>
 		<input type="hidden" name="process" value="signup">
 		<table>
 			<colgroup>
@@ -100,8 +131,8 @@
 		</table>
 	</form>
 	<div style="text-align:center; margin-top:10px;">
-		<button onclick="fn_signup();">가입</button>
-		<button onclick="fn_cancel();">취소</button>
+		<button id="btn_signup">가입</button>
+		<button id="btn_cancel">취소</button>
 	</div>
 </div>
 </body>
