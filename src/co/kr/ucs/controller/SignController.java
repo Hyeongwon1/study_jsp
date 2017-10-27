@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import co.kr.ucs.bean.UserBean;
@@ -20,9 +23,7 @@ import co.kr.ucs.service.SignService;
 public class SignController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
-    public SignController() {
-        super();
-    }
+	private static final Logger logger = LoggerFactory.getLogger(SignController.class);
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doPost(request, response);
@@ -44,8 +45,8 @@ public class SignController extends HttpServlet {
 		
 		String errorMessage = null;
 		
-		System.out.println("[SignController]접속 URI : " + uri);
-		System.out.println("[SignController]Parameter : " + params);
+		logger.info("[SignController]접속 URI : {}", uri);
+		logger.info("[SignController]Parameter : {}", params);
 		
 		// 로그인
 		if(uri.indexOf("/sign/signin") > -1) {
@@ -60,6 +61,7 @@ public class SignController extends HttpServlet {
 				}
 				
 			}catch(Exception e) {
+				logger.error("{}", e);
 				errorMessage = "로그인 처리 오류 발생 : " + e.getMessage();
 			}
 		
@@ -68,6 +70,7 @@ public class SignController extends HttpServlet {
 			try {
 				service.signUp(params);
 			} catch (Exception e) {
+				logger.error("{}", e);
 				errorMessage = "회원가입 처리 오류 발생 : " + e.getMessage();
 			}
 		} else {

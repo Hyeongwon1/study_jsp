@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import co.kr.ucs.bean.UserBean;
 import co.kr.ucs.dao.DBConnectionPool;
 import co.kr.ucs.dao.DBConnectionPoolManager;
@@ -14,6 +17,8 @@ public class SignService {
 	
 	DBConnectionPoolManager dbPoolManager = DBConnectionPoolManager.getInstance();
 	DBConnectionPool dbPool;
+	
+	private static final Logger logger = LoggerFactory.getLogger(SignService.class);
 	
 	public SignService() {
 		dbPoolManager.setDBPool(DBManager.getUrl(), DBManager.getId(), DBManager.getPw());
@@ -40,8 +45,8 @@ public class SignService {
 			
 			rs = pstmt.executeQuery();
 			
-			System.out.println("쿼리실행 : " + sql.toString());
-			System.out.println("파라미터 : " + params);
+			logger.debug("쿼리실행 : {}", sql.toString());
+			logger.debug("파라미터 : {}", params);
 			
 			if(rs.next()) {
 				userBean = new UserBean();
@@ -92,14 +97,12 @@ public class SignService {
 			
 			rs = pstmt.executeQuery();
 			
-			System.out.print("쿼리실행 : ");
-			System.out.println(sql.toString());
-			System.out.print("파라미터 : ");
-			System.out.println(userId);
+			logger.debug("쿼리실행 : {}", sql.toString());
+			logger.debug("파라미터 : {}", userId);
 			
 			if(rs.next()) count = rs.getInt(1);
 			
-			System.out.println("결과 : " + count);
+			logger.debug("결과 : " + count);
 		}catch(Exception e){
 			e.printStackTrace();
 			throw e;
@@ -134,8 +137,8 @@ public class SignService {
 			pstmt.setString(3, params.getUserPw());	
 			pstmt.setString(4, params.getEmail());
 			
-			System.out.println("쿼리실행 : " + sql.toString());
-			System.out.println("파라미터 : " + params);
+			logger.debug("쿼리실행 : {}", sql.toString());
+			logger.debug("파라미터 : {}", params);
 			
 			pstmt.executeUpdate();
 		}catch(Exception e){

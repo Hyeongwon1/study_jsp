@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import co.kr.ucs.bean.BoardBean;
 import co.kr.ucs.bean.SearchBean;
 import co.kr.ucs.dao.DBConnectionPool;
@@ -19,6 +22,8 @@ public class BoardService {
 	
 	DBConnectionPoolManager dbPoolManager = DBConnectionPoolManager.getInstance();
 	DBConnectionPool dbPool;
+	
+	private static final Logger logger = LoggerFactory.getLogger(SignService.class);
 	
 	public BoardService() {
 		dbPoolManager.setDBPool(DBManager.getUrl(), DBManager.getId(), DBManager.getPw());
@@ -95,8 +100,8 @@ public class BoardService {
 			pstmt.setInt(++parameterIndex, rowCountPerPage);
 			pstmt.setInt(++parameterIndex, currPage);
 			
-			System.out.println("쿼리실행 : " + sql.toString());
-			System.out.println("파라미터 : " + search + ", " + searchType + ", " + currPage);
+			logger.debug("쿼리실행 : {}", sql.toString());
+			logger.debug("파라미터 : {}, {}, {}", search, searchType, currPage);
 			
 			rs = pstmt.executeQuery();
 			
@@ -113,7 +118,7 @@ public class BoardService {
 				board.setModId(rs.getString(7));
 				board.setModDate(rs.getString(8));
 				
-				System.out.println(board.toString());
+				logger.debug(board.toString());
 				boardList.add(board);
 			}
 			
@@ -148,8 +153,8 @@ public class BoardService {
 			pstmt.setString(3, params.getRegId());	
 			pstmt.setString(4, params.getModId());
 			
-			System.out.println("쿼리실행 : " + sql.toString());
-			System.out.println("파라미터 : " + params);
+			logger.debug("쿼리실행 : {}", sql.toString());
+			logger.debug("파라미터 : {}", params);
  			
 			pstmt.executeUpdate();
 		}catch(SQLException e){
@@ -184,8 +189,8 @@ public class BoardService {
 			
 			pstmt.setInt(1, params.getSeq());
 			
-			System.out.println("쿼리실행 : " + sql.toString());
-			System.out.println("파라미터 : " + params.getSeq());
+			logger.debug("쿼리실행 : {}", sql.toString());
+			logger.debug("파라미터 : {}", params.getSeq());
 			
 			rs = pstmt.executeQuery();
 			
@@ -198,7 +203,7 @@ public class BoardService {
 				board.setModId(rs.getString(6));
 				board.setModDate(rs.getString(7));
 				
-				System.out.println(board);
+				logger.debug(board.toString());
 			}
 			
 		}catch(Exception e){

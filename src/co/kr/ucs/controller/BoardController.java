@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import co.kr.ucs.bean.BoardBean;
@@ -20,11 +23,9 @@ import co.kr.ucs.service.BoardService;
 
 public class BoardController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    public BoardController() {
-        super();
-    }
-
+	
+	private static final Logger logger = LoggerFactory.getLogger(BoardController.class);
+	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doPost(request, response);
 	}
@@ -47,8 +48,8 @@ public class BoardController extends HttpServlet {
 		
 		String errorMessage = null;
 		
-		System.out.println("[BoardController]접속 URI : " + uri);
-		System.out.println("[BoardController]Parameter : " + params);
+		logger.info("[BoardController]접속 URI : {}", uri);
+		logger.info("[BoardController]Parameter : {}", params);
 		
 		// 게시판 목록 조회
 		if(uri.indexOf("/board/boardList") > -1) {
@@ -58,7 +59,7 @@ public class BoardController extends HttpServlet {
 				result.put("totalCount", boardService.getTotalCount());
 				
 			}catch(Exception e) {
-				e.printStackTrace();
+				logger.error("{}", e);
 				errorMessage = "게시판목록 조회 처리 오류 발생 : " + e.getMessage();
 			}
 			
@@ -80,7 +81,7 @@ public class BoardController extends HttpServlet {
 			try {
 				boardService.saveBoard(params);
 			} catch (SQLException e) {
-				e.printStackTrace();
+				logger.error("{}", e);
 				errorMessage = "게시판 글쓰기 저장 처리 오류 발생 : " + e.getMessage();
 			}
 		} else {
